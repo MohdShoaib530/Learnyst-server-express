@@ -1,10 +1,10 @@
-import cookieParser from "cookie-parser";
-import cors from "cors";
-import dotenv from "dotenv";
-import express from "express";
-import morgan from "morgan";
+import cookieParser from 'cookie-parser';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import express from 'express';
+import morgan from 'morgan';
 
-import userRouter from "./routes/user.routes";
+import userRouter from './routes/user.routes.js';
 dotenv.config();
 const app = express();
 
@@ -21,21 +21,21 @@ app.use(
     })
 );
 
-app.use(morgan("dev"));
+app.use(morgan('dev'));
 app.use(cookieParser());
 
-app.get("/time", async (_req, res) => {
-    res.status(200).json("Running very fastly");
+app.get('/time', async (_req, res) => {
+    res.status(200).json('Running very fastly');
 });
 
 // user routes
 
-app.use("/api/v1/user",userRouter);
+app.use('/api/v1/user',userRouter);
 
 // default catch for all the other routes
 
-app.use("*", async(_req,res) => {
-    res.status(404).json("404 page not found");
+app.use('*', async(_req,res) => {
+    res.status(404).json('404 page not found');
 });
 
 // custom error handeling middleware

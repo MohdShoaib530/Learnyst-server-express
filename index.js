@@ -1,10 +1,10 @@
-import { v2 } from "cloudinary";
-import Razorpaya from "razorpay";
+import { v2 } from 'cloudinary';
+import Razorpay from 'razorpay';
 
-import app from "./app.js";
-import connectToDb from "./configs/db.js";
+import app from './app.js';
+import connectToDb from './configs/db.js';
 
-export const razorpay = new Razorpaya({
+export const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
     key_secret: process.env.RAZORPAY_SECRET
 });

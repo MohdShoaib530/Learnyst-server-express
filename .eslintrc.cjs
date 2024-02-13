@@ -3,55 +3,55 @@ module.exports = {
         browser: true,
         es2021: true
     },
-    extends: "eslint:recommended",
+    extends: 'eslint:recommended',
     overrides: [
         {
             env: {
                 node: true
             },
             files: [
-                ".eslintrc.{js,cjs}"
+                '.eslintrc.{js,cjs}'
             ],
             parserOptions: {
-                sourceType: "script"
+                sourceType: 'script'
             }
         }
     ],
     parserOptions: {
-        ecmaVersion: "latest",
-        sourceType: "module"
+        ecmaVersion: 'latest',
+        sourceType: 'module'
     },
     plugins: [
-        "simple-import-sort" // Add the simple-import-sort plugin
+        'simple-import-sort' // Add the simple-import-sort plugin
     ],
     rules: {
         indent: [
-            "error",
+            'error',
             4
         ],
-        "linebreak-style": [
-            "error",
-            "windows"
+        'linebreak-style': [
+            'error',
+            'windows'
         ],
         quotes: [
-            "error",
-            "double"
+            'error',
+            'single'
         ],
         semi: [
-            "error",
-            "always"
+            'error',
+            'always'
         ],
-        "no-unused-vars": ["warn"],
-        "no-console": ["warn"],
-        eqeqeq: ["error", "always"],
-        curly: ["error", "all"],
-        "brace-style": ["error", "1tbs"],
-        "no-trailing-spaces": ["error"],
-        "comma-dangle": ["error", "never"],
-        "no-var": ["error"],
-        "prefer-const": ["error"],
-        "simple-import-sort/imports":[ "error"],
-        "no-process-env": ["off"],
-        "no-undef": "off"
+        'no-unused-vars': ['warn'],
+        'no-console': ['warn'],
+        eqeqeq: ['error', 'always'],
+        curly: ['error', 'all'],
+        'brace-style': ['error', '1tbs'],
+        'no-trailing-spaces': ['error'],
+        'comma-dangle': ['error', 'never'],
+        'no-var': ['error'],
+        'prefer-const': ['error'],
+        'simple-import-sort/imports':[ 'error'],
+        'no-process-env': ['off'],
+        'no-undef': 'off'
     }
 };
