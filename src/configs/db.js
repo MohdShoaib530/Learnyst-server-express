@@ -12,7 +12,8 @@ const connectToDb = async () => {
         }
         return connection;
     } catch (error) {
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        // eslint-disable-next-line no-console
+        console.log('error while connecting to db',error);
         process.exit(1);
     }
 

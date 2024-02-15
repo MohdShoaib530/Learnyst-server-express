@@ -1,12 +1,11 @@
 import multer from 'multer';
 import path from 'path';
 
-
 const upload = multer({
-    dest: 'uploads/',  // files will be stored here
-    limits: { fileSize: 50 * 1024 * 1024 }, // : Sets a limit of 50 MB for the file size.
-    storage: multer.diskStorage({  //Configures file storage settings using disk storage.
-        destination: 'uploads/',  //  Specifies the destination folder for storing files on disk.
+    dest: 'src/uploads/',
+    limits: { fileSize: 50 * 1024 * 1024 }, // 50 mb in size max limit
+    storage: multer.diskStorage({
+        destination: 'src/uploads/',
         filename: (_req, file, cb) => {
             cb(null, file.originalname);
         }

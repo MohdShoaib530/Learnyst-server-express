@@ -3,7 +3,7 @@ import fs from 'fs';
 
 import asyncHandler from '../middleware/asyncHandler.middleware.js';
 import User from '../models/user.model.js';
-import AppError from '../utils/appError.js';
+import apiError from '../utils/apiError.js';
 
 const cookieOptions = {
     secure : process.env.NODE_ENV === 'Production' ? true : false,
@@ -22,7 +22,7 @@ export const registerUser = asyncHandler( async (req, res, next) => {
 
     // check that all the fields are filled properly if not throw error message
     if(!fullName || !email || !password){
-        return  next(new AppError('All fields are required',400));
+        return  next(new apiError('All fields are required',400));
     }
 
     // find the user in the db using email
@@ -30,7 +30,7 @@ export const registerUser = asyncHandler( async (req, res, next) => {
 
     // if user already exists with the provided email then throw error message
     if(userExists){
-        return next(new AppError('Email already registered',400));
+        return next(new apiError('Email already registered',400));
     }
 
     // if user does not exists then crate a user in the db
@@ -46,7 +46,7 @@ export const registerUser = asyncHandler( async (req, res, next) => {
 
     // if any proble occures during user creation then throw an error mesaage
     if(!user){
-        return next(new AppError('User registration failed, please try again later'));
+        return next(new apiError('User registration failed, please try again later'));
     }
 
     if(req.file){
@@ -66,12 +66,12 @@ export const registerUser = asyncHandler( async (req, res, next) => {
                 user.avatar.secure_url = result.secure_url;
 
                 // after successful upload of file, remove it from local storage
-                fs.rm(`uploads${req.file.filefullName}`);
+                await fs.promises.unlink(`src/uploads/${req.file.filename}`);
             }
+
         } catch (error) {
-            return next(
-                new AppError(error || 'file not uploaded, please try again',400)
-            );
+            // eslint-disable-next-line no-console
+            console.log('Error while uploading image',error);
         }
     }
 
