@@ -2,7 +2,7 @@ import { v2 } from 'cloudinary';
 import Razorpay from 'razorpay';
 
 import app from './app.js';
-import connectToDb from './configs/db.js';
+import connectToDb from './configs/dbConn.js';
 
 export const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
@@ -20,7 +20,7 @@ connectToDb()
     .then(() => {
         app.on('error', (err) => {
             // eslint-disable-next-line no-console
-            console.log('Error',err);
+            console.log('Error', err);
         });
 
         app.listen(process.env.PORT, async () => {
@@ -30,5 +30,5 @@ connectToDb()
     })
     .catch((error) => {
         // eslint-disable-next-line no-console
-        console.log('Something went wrong while connecting to db',error);
+        console.log('Something went wrong while connecting to db', error);
     });

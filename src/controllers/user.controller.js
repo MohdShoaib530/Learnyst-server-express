@@ -6,31 +6,30 @@ import User from '../models/user.model.js';
 import apiError from '../utils/apiError.js';
 
 const cookieOptions = {
-    secure : process.env.NODE_ENV === 'Production' ? true : false,
+    secure: process.env.NODE_ENV === 'Production' ? true : false,
     maxAge: 24 * 60 * 60 * 1000,
-    httpOnly: true
+    httpOnly: true,
 };
 /**
  * @REGISTER
  * @ROUTE @POST {{URL}}/api/v1/user/register
  * @ACCESS Public
  */
-export const registerUser = asyncHandler( async (req, res, next) => {
-
+export const registerUser = asyncHandler(async (req, res, next) => {
     // destructuring the necessary data from the req object
-    const { fullName, email , password} = req.body;
+    const { fullName, email, password } = req.body;
 
     // check that all the fields are filled properly if not throw error message
-    if(!fullName || !email || !password){
-        return  next(new apiError('All fields are required',400));
+    if (!fullName || !email || !password) {
+        return next(new apiError('All fields are required', 400));
     }
 
     // find the user in the db using email
-    const userExists = await User.findOne({email});
+    const userExists = await User.findOne({ email });
 
     // if user already exists with the provided email then throw error message
-    if(userExists){
-        return next(new apiError('Email already registered',400));
+    if (userExists) {
+        return next(new apiError('Email already registered', 400));
     }
 
     // if user does not exists then crate a user in the db
@@ -40,38 +39,40 @@ export const registerUser = asyncHandler( async (req, res, next) => {
         password,
         avatar: {
             public_id: email,
-            secure_url: 'https://res.cloudinary.com/du9jzqlpt/image/upload/v1674647316/avatar_drzgxv.jpg'
-        }
+            secure_url:
+                'https://res.cloudinary.com/du9jzqlpt/image/upload/v1674647316/avatar_drzgxv.jpg',
+        },
     });
 
-    // if any proble occures during user creation then throw an error mesaage
-    if(!user){
-        return next(new apiError('User registration failed, please try again later'));
+    // if any problem occures during user creation then throw an error mesaage
+    if (!user) {
+        return next(
+            new apiError('User registration failed, please try again later')
+        );
     }
 
-    if(req.file){
+    if (req.file) {
         try {
             // upload the image on cloudinary
-            const result = await cloudinary.v2.uploader.upload(req.file.path,{
-                folder: 'yog_user_profile',  // save file in this folder
+            const result = await cloudinary.v2.uploader.upload(req.file.path, {
+                folder: 'user_profile', // save file in this folder
                 width: 250,
                 height: 250,
                 gravity: 'faces', // This option tells cloudinary to center the image around detected faces (if any) after cropping or resizing the original image
-                crop: 'fill'
+                crop: 'fill',
             });
 
-            if(result){
+            if (result) {
                 // set the public id and secure_url in the db
                 user.avatar.public_id = result.public_id,
-                user.avatar.secure_url = result.secure_url;
+                    user.avatar.secure_url = result.secure_url;
 
                 // after successful upload of file, remove it from local storage
                 await fs.promises.unlink(`src/uploads/${req.file.filename}`);
             }
-
         } catch (error) {
             // eslint-disable-next-line no-console
-            console.log('Error while uploading image',error);
+            console.log('Error while uploading image', error);
         }
     }
 
@@ -82,10 +83,9 @@ export const registerUser = asyncHandler( async (req, res, next) => {
     user.password = undefined;
 
     res.cookie('token', token, cookieOptions);
-
     res.status(201).json({
         success: true,
         message: 'User created successfully',
-        user
+        user,
     });
 });

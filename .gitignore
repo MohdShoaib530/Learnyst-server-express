@@ -18,7 +18,7 @@ build/
 *.suo
 *.ntvs*
 *.njsproj
-*.sln
+*.sl
 *.swp
 *.bak
 *.cache

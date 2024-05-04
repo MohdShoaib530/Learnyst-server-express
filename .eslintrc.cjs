@@ -23,7 +23,7 @@ module.exports = {
         'simple-import-sort' // Add the simple-import-sort plugin
     ],
     rules: {
-        indent: ['error', 4],
+        indent: ['error', tab],
         'linebreak-style': ['error', 'windows'],
         quotes: ['error', 'single'],
         semi: ['error', 'always'],

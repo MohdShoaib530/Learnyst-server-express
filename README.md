@@ -1,3 +1,3 @@
-# yoga-client
+# fitapp-server
 
 yoga, meditation and exercise
