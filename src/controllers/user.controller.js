@@ -18,6 +18,7 @@ const cookieOptions = {
  */
 export const registerUser = asyncHandler(async (req, res, next) => {
     const { fullName, email, password } = req.body;
+    console.log('register', email, password);
 
     if (
         [fullName, email, password].some((field) => field?.trim() === '')
@@ -45,12 +46,15 @@ export const registerUser = asyncHandler(async (req, res, next) => {
         },
     });
 
-    const createdUser = await User.findById(user._id);
+    const createdUser = await User.findById(user._id).select(
+        "-password -refreshToken"
+    );
     if (!createdUser) {
         return next(
             new apiError('User registration failed, please try again later')
         );
     }
+    console.log('createUser', createdUser);
 
     if (req.files?.avatar || req.files?.coverImage) {
         try {
@@ -90,7 +94,6 @@ export const registerUser = asyncHandler(async (req, res, next) => {
 
     const { accessToken, refreshToken } = await generateTokens(createdUser._id);
     await user.save();
-    user.password = '';
 
     console.log('access', refreshToken);
 
@@ -99,3 +102,59 @@ export const registerUser = asyncHandler(async (req, res, next) => {
         .cookie('refreshTokekn', refreshToken, cookieOptions)
         .json(new apiResponse(201, user, 'User created successfully'));
 });
+
+export const loginUser = asyncHandler(async (req, res, next) => {
+    const { email, password } = req.body;
+
+    if (
+        [email, password].some((field) => field?.trim() === '')
+    ) {
+        throw next(new apiError("All fields are required", 400))
+    }
+
+    const user = await User.findOne({ email }).select("+password");
+    if (!user) {
+        throw next(new apiError("OOPS! User does not exists", 404))
+    }
+
+    const isPasswordValid = await user.comparePassword(password)
+    if (!isPasswordValid) {
+        throw next(new apiError("Password does not match", 401))
+    }
+
+    user.password = undefined;
+
+    const { accessToken, refreshToken } = await generateTokens(user._id);
+
+    res
+        .status(200)
+        .cookie('accessToken', accessToken, cookieOptions)
+        .cookie('refreshToken', refreshToken, cookieOptions)
+        .json(
+            new apiResponse(200, user, "User loggedIn successfully", true)
+        )
+})
+
+export const logoutUser = asyncHandler(async (req, res, next) => {
+    const id = req.user._id
+
+    const updatedUser = await User.findByIdAndUpdate(
+        id,
+        {
+            $set: {
+                refreshToken: undefined
+            }
+        },
+        {
+            new: true
+        }
+    ).select("-password");
+
+    res
+        .status(200)
+        .clearCookie('accessToken', cookieOptions)
+        .clearCookie('refreshToken', cookieOptions)
+        .json(
+            new apiResponse(200, {}, "User Logged Out Successfully")
+        )
+})
