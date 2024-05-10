@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
+import envVar from '../configs/config.js'
 
 const userSchema = new mongoose.Schema(
     {
@@ -36,6 +37,14 @@ const userSchema = new mongoose.Schema(
                 type: String
             }
         },
+        coverImage: {
+            public_id: {
+                type: String
+            },
+            secure_url: {
+                type: String
+            }
+        },
         role: {
             type: String,
             enum: ['USER', 'ADMIN'],
@@ -59,20 +68,40 @@ userSchema.pre('save', async function (next) {
     }
 
     this.password = await bcrypt.hash(this.password, 10);
+    next()
 });
 
 userSchema.methods = {
 
     // will generate a jwt token with user id with payload
-    generateJWTToken: async function () {
-        return await jwt.sign(
-            { id: this._id, email: this.email, role: this.role, subscription: this.subscription },
-            process.env.JWT_SECRET,
+    generateAccessToken: function () {
+        return jwt.sign(
             {
-                expiresIn: process.env.JWT_EXPIRY
+                _id: this._id,
+                email: this.email,
+                role: this.role,
+                subscription: this.subscription
+            },
+            envVar.accessTokenSecret,
+            {
+                expiresIn: envVar.accessTokenExpiry
             }
         );
+    },
+
+    generateRefreshToken: function () {
+        return jwt.sign(
+            {
+                _id: this._id
+            },
+            envVar.refreshTokenSecret,
+            {
+                expiresIn: envVar.refreshTokenExpiry
+            }
+        )
     }
 };
 
-export default mongoose.model('User', userSchema);
+const User = mongoose.model('User', userSchema);
+
+export default User;

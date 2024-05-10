@@ -1,23 +1,29 @@
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import express from 'express';
 import morgan from 'morgan';
-
+import errorMiddleware from './middleware/error.middleware.js';
+import envVar from './configs/config.js'
 import userRouter from './routes/user.routes.js';
-dotenv.config();
 const app = express();
 
 
 // built in middleware
-app.use(express.json());
-app.use(express.urlencoded({extended:true}));
+app.use(express.json({
+    limit: '16kb'
+}));
+app.use(express.urlencoded({
+    extended: true,
+    limit: '16kb'
+}));
+
+app.use(express.static('public'))
 
 // third party middleware
 app.use(
     cors({
-        origin:process.env.FRONTEND_URL,
-        credentials:true
+        origin: envVar.frontendUrl,
+        credentials: true
     })
 );
 
@@ -30,17 +36,17 @@ app.get('/time', async (_req, res) => {
 
 // user routes
 
-app.use('/api/v1/user',userRouter);
+app.use('/api/v1/user', userRouter);
 
 // default catch for all the other routes
 
-app.use('*', async(_req,res) => {
+app.use('*', async (_req, res) => {
     res.status(404).json('404 page not found');
 });
 
 // custom error handeling middleware
 
-// app.use(errorMiddleware);
+app.use(errorMiddleware);
 
 export default app;
 

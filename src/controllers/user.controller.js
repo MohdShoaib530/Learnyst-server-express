@@ -1,38 +1,34 @@
-import cloudinary from 'cloudinary';
-import fs from 'fs';
-
-import asyncHandler from '../middleware/asyncHandler.middleware.js';
+import asyncHandler from '../utils/asyncHandler.js';
 import User from '../models/user.model.js';
 import apiError from '../utils/apiError.js';
+import cloudinaryUpload from '../utils/cloudinaryUpload.js';
+import generateTokens from '../utils/generateTokens.js';
+import envVar from '../configs/config.js';
+import apiResponse from '../utils/apiResponse.js';
 
 const cookieOptions = {
-    secure: process.env.NODE_ENV === 'Production' ? true : false,
-    maxAge: 24 * 60 * 60 * 1000,
+    secure: envVar.nodeEnv === 'Production' ? true : false,
     httpOnly: true,
 };
+
 /**
  * @REGISTER
  * @ROUTE @POST {{URL}}/api/v1/user/register
  * @ACCESS Public
  */
 export const registerUser = asyncHandler(async (req, res, next) => {
-    // destructuring the necessary data from the req object
     const { fullName, email, password } = req.body;
 
-    // check that all the fields are filled properly if not throw error message
-    if (!fullName || !email || !password) {
-        return next(new apiError('All fields are required', 400));
+    if (
+        [fullName, email, password].some((field) => field?.trim() === '')
+    ) {
+        throw next(new apiError(400, 'All fields are required'));
     }
-
-    // find the user in the db using email
     const userExists = await User.findOne({ email });
 
-    // if user already exists with the provided email then throw error message
     if (userExists) {
         return next(new apiError('Email already registered', 400));
     }
-
-    // if user does not exists then crate a user in the db
     const user = await User.create({
         fullName,
         email,
@@ -42,50 +38,64 @@ export const registerUser = asyncHandler(async (req, res, next) => {
             secure_url:
                 'https://res.cloudinary.com/du9jzqlpt/image/upload/v1674647316/avatar_drzgxv.jpg',
         },
+        coverImage: {
+            public_id: email,
+            secure_url:
+                'https://res.cloudinary.com/du9jzqlpt/image/upload/v1674647316/avatar_drzgxv.jpg',
+        },
     });
 
-    // if any problem occures during user creation then throw an error mesaage
-    if (!user) {
+    const createdUser = await User.findById(user._id);
+    if (!createdUser) {
         return next(
             new apiError('User registration failed, please try again later')
         );
     }
 
-    if (req.file) {
+    if (req.files?.avatar || req.files?.coverImage) {
         try {
-            // upload the image on cloudinary
-            const result = await cloudinary.v2.uploader.upload(req.file.path, {
-                folder: 'user_profile', // save file in this folder
-                width: 250,
-                height: 250,
-                gravity: 'faces', // This option tells cloudinary to center the image around detected faces (if any) after cropping or resizing the original image
-                crop: 'fill',
-            });
+            let avatarLocalPath;
+            if (
+                req.files &&
+                Array.isArray(req.files.avatar) &&
+                req.files.avatar[0].path
+            ) {
+                avatarLocalPath = req.files.avatar[0].path;
+            }
+            console.log('avatarlocal', avatarLocalPath);
+            const avatarCloudinary = await cloudinaryUpload(avatarLocalPath);
 
-            if (result) {
-                // set the public id and secure_url in the db
-                user.avatar.public_id = result.public_id,
-                    user.avatar.secure_url = result.secure_url;
+            if (avatarCloudinary) {
+                user.avatar.public_id = avatarCloudinary?.public_id;
+                user.avatar.secure_url = avatarCloudinary?.secure_url;
+            }
 
-                // after successful upload of file, remove it from local storage
-                await fs.promises.unlink(`src/uploads/${req.file.filename}`);
+            let coverImageLocalPath;
+            if (
+                req.files &&
+                Array.isArray(req.files.coverImage) &&
+                req.files.coverImage[0].path
+            ) {
+                coverImageLocalPath = req.files.coverImage[0].path;
+            }
+            const coverImageCloudinary = await cloudinaryUpload(coverImageLocalPath);
+            if (coverImageCloudinary) {
+                user.coverImage.public_id = coverImageCloudinary?.public_id;
+                user.coverImage.secure_url = coverImageCloudinary?.secure_url;
             }
         } catch (error) {
-            // eslint-disable-next-line no-console
             console.log('Error while uploading image', error);
         }
     }
 
-    await user.save;
+    const { accessToken, refreshToken } = await generateTokens(createdUser._id);
+    await user.save();
+    user.password = '';
 
-    const token = await user.generateJWTToken();
+    console.log('access', refreshToken);
 
-    user.password = undefined;
-
-    res.cookie('token', token, cookieOptions);
-    res.status(201).json({
-        success: true,
-        message: 'User created successfully',
-        user,
-    });
+    res.status(201)
+        .cookie('accessToken', accessToken, cookieOptions)
+        .cookie('refreshTokekn', refreshToken, cookieOptions)
+        .json(new apiResponse(201, user, 'User created successfully'));
 });
