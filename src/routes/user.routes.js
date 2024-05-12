@@ -12,8 +12,9 @@ router.route('/register').post(
         ]
     ), registerUser);
 
-router.route('/login').post(loginUser)
-router.route('/logout').post(isLoggedIn, logoutUser)
+router.route('/login').post(loginUser);
+router.route('/logout').post(isLoggedIn, logoutUser);
+
 
 
 export default router;

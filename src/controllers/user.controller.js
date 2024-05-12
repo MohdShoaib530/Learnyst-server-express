@@ -5,6 +5,7 @@ import cloudinaryUpload from '../utils/cloudinaryUpload.js';
 import generateTokens from '../utils/generateTokens.js';
 import envVar from '../configs/config.js';
 import apiResponse from '../utils/apiResponse.js';
+import jwt from 'jsonwebtoken';
 
 const cookieOptions = {
     secure: envVar.nodeEnv === 'Production' ? true : false,
@@ -18,7 +19,6 @@ const cookieOptions = {
  */
 export const registerUser = asyncHandler(async (req, res, next) => {
     const { fullName, email, password } = req.body;
-    console.log('register', email, password);
 
     if (
         [fullName, email, password].some((field) => field?.trim() === '')
@@ -44,11 +44,10 @@ export const registerUser = asyncHandler(async (req, res, next) => {
             secure_url:
                 'https://res.cloudinary.com/du9jzqlpt/image/upload/v1674647316/avatar_drzgxv.jpg',
         },
+        refreshToken: ""
     });
 
-    const createdUser = await User.findById(user._id).select(
-        "-password -refreshToken"
-    );
+    const createdUser = await User.findById(user._id).select("-password -refreshToken")
     if (!createdUser) {
         return next(
             new apiError('User registration failed, please try again later')
@@ -93,14 +92,14 @@ export const registerUser = asyncHandler(async (req, res, next) => {
     }
 
     const { accessToken, refreshToken } = await generateTokens(createdUser._id);
-    await user.save();
+    createdUser.refreshToken = undefined;
 
     console.log('access', refreshToken);
 
     res.status(201)
         .cookie('accessToken', accessToken, cookieOptions)
-        .cookie('refreshTokekn', refreshToken, cookieOptions)
-        .json(new apiResponse(201, user, 'User created successfully'));
+        .cookie('refreshToken', refreshToken, cookieOptions)
+        .json(new apiResponse(201, createdUser, 'User created successfully'));
 });
 
 export const loginUser = asyncHandler(async (req, res, next) => {
@@ -157,4 +156,39 @@ export const logoutUser = asyncHandler(async (req, res, next) => {
         .json(
             new apiResponse(200, {}, "User Logged Out Successfully")
         )
+})
+
+export const refreshAccessToken = asyncHandler(async (req, res, next) => {
+    try {
+        const incomingRefreshToken = req.cookie?.refreshToken || req.body?.refreshToken
+
+        if (!incomingRefreshToken) {
+            throw next(new apiError("unable to get the refreshToken", 401))
+        }
+
+        const decodedRefreshToken = await jwt.verify(incomingRefreshToken, envVar.refreshTokenSecret)
+
+        if (!decodedRefreshToken) {
+            throw next(new apiError("Invalid refreshToken", 401))
+        }
+
+        const user = await User.findById(decodedRefreshToken._id)
+
+        if (!user) {
+            throw next(new apiError("Invalid refreshToken", 401))
+        }
+        const { accessToken, refreshToken } = await generateTokens(user._id)
+
+        res
+            .status(200)
+            .cookie("accessToken", accessToken, cookieOptions)
+            .cookie("refreshToken", refreshToken, cookieOptions)
+            .json(
+                new apiResponse(200, user, "refreshToken refreshed")
+            )
+
+
+    } catch (error) {
+        console.log('error', error);
+    }
 })

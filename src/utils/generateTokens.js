@@ -3,12 +3,13 @@ import ApiError from './apiError.js'
 
 const generateTokens = async (id) => {
     try {
-        const user = await User.findById(id)
+        const user = await User.findById(id).select("+refreshToken")
         const accessToken = user.generateAccessToken()
         const refreshToken = user.generateRefreshToken()
 
         user.refreshToken = refreshToken
         await user.save({ validateBeforeSave: false })
+        console.log('tuser', user);
         return { accessToken, refreshToken }
     } catch (error) {
         console.log('error in tokens', error);

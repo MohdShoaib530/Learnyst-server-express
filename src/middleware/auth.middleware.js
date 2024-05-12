@@ -8,7 +8,7 @@ const isLoggedIn = asyncHandler(async (req, _, next) => {
     try {
         const token = req.cookies?.accessToken || req.header('Authorization')?.replace("Bearer ", "")
         if (!token) {
-            next(new apiError("Unable to get the accessToken", 401))
+            return next(new apiError("Unable to get the accessToken", 401))
         }
 
         const decoded = await jwt.verify(token, envVar.accessTokenSecret)
@@ -26,7 +26,7 @@ const isLoggedIn = asyncHandler(async (req, _, next) => {
         next()
     } catch (error) {
         console.log('error', error);
-        throw next(new apiError(401, error.message || "error while auth user"))
+        throw next(new apiError(error.message || "error while authenticating user", 401))
     }
 })
 
