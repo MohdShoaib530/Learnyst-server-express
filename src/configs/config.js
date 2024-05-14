@@ -12,7 +12,12 @@ const config = {
     cloudinaryApiKey: String(process.env.CLOUDINARY_API_KEY),
     cloudinaryApiSecret: String(process.env.CLOUDINARY_API_SECRET),
     cloudinaryCloudName: String(process.env.CLOUDINARY_CLOUD_NAME),
-    mongoUri: String(process.env.MONGO_URI)
+    mongoUri: String(process.env.MONGO_URI),
+    smtpHost: String(process.env.SMTP_HOST),
+    smtpPort: String(process.env.SMTP_PORT),
+    smtpUsrename: String(process.env.SMTP_USERNAME),
+    smtpPassword: String(process.env.SMTP_PASSWORD),
+    smtpFromEmail: String(process.env.SMTP_FROM_EMAIL)
 };
 
 export default config;  
