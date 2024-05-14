@@ -16,9 +16,9 @@ const cookieOptions = {
 };
 
 /**
- * @REGISTER
- * @ROUTE @POST {{URL}}/api/v1/user/register
- * @ACCESS Public
+ * @REGISTER_USER
+ * @POST {{URL}}/api/v1/user/register
+ * @ACCESS register user
  */
 export const registerUser = asyncHandler(async (req, res, next) => {
     const { fullName, email, password } = req.body;
@@ -106,6 +106,11 @@ export const registerUser = asyncHandler(async (req, res, next) => {
         .json(new apiResponse(201, createdUser, 'User created successfully'));
 });
 
+/**
+ * @LOGIN_USER
+ * @POST {{URL}}/api/v1/user/login
+ * @ACCESS registered users only
+ */
 export const loginUser = asyncHandler(async (req, res, next) => {
     const { email, password } = req.body;
 
@@ -138,6 +143,11 @@ export const loginUser = asyncHandler(async (req, res, next) => {
         )
 })
 
+/**
+ * @LOGOUT_USER
+ * @ROUTE @POST {{URL}}/api/v1/user/logout
+ * @ACCESS loggedIn users only
+ */
 export const logoutUser = asyncHandler(async (req, res, next) => {
     const id = req.user._id
 
@@ -162,6 +172,11 @@ export const logoutUser = asyncHandler(async (req, res, next) => {
         )
 })
 
+/**
+ * @REFRESH_ACCESS_TOKEN
+ * @ROUTE @POST {{URL}}/api/v1/user/refreshAccessToken
+ * @ACCESS loggedIn users only
+ */
 export const refreshAccessToken = asyncHandler(async (req, res, next) => {
     try {
         const incomingRefreshToken = req.cookie?.refreshToken || req.body?.refreshToken
@@ -197,6 +212,11 @@ export const refreshAccessToken = asyncHandler(async (req, res, next) => {
     }
 })
 
+/**
+ * @USER_DATA
+ * @ROUTE @POST {{URL}}/api/v1/user/profile
+ * @ACCESS loggedIn users only
+ */
 export const userData = asyncHandler(async (req, res, next) => {
     res
         .status(200)
@@ -205,6 +225,12 @@ export const userData = asyncHandler(async (req, res, next) => {
         )
 
 })
+
+/**
+ * @FORGOT_PASSWORD
+ * @ROUTE @POST {{URL}}/api/v1/user/reset-password
+ * @ACCESS registered users only
+ */
 export const forgotPassword = asyncHandler(async (req, res, next) => {
     const { email } = req.body;
 
@@ -250,6 +276,12 @@ export const forgotPassword = asyncHandler(async (req, res, next) => {
     }
 
 })
+
+/**
+ * @RESET_PASSWORD
+ * @ROUTE @POST {{URL}}/api/v1/user/reset-password/:resetToken
+ * @ACCESS mailed users only
+ */
 export const resetPassword = asyncHandler(async (req, res, next) => {
     const { resetToken } = req.params
     const { password } = req.body
@@ -286,6 +318,12 @@ export const resetPassword = asyncHandler(async (req, res, next) => {
             new apiResponse(200, user, "Password changed successfully")
         )
 })
+
+/**
+ * @CHANGE_PASSWORD
+ * @ROUTE @POST {{URL}}/api/v1/user/chanage-password
+ * @ACCESS loggedIn users only
+ */
 export const changePassword = asyncHandler(async (req, res, next) => {
     const { oldPassword, newPassword } = req.body;
 
@@ -330,6 +368,11 @@ export const changePassword = asyncHandler(async (req, res, next) => {
 
 })
 
+/**
+ * @UPDATE_NAME
+ * @ROUTE @POST {{URL}}/api/v1/user/update-username
+ * @ACCESS loggedIn users only
+ */
 export const updateName = asyncHandler(async (req, res, next) => {
     const { fullName } = req.body
     if (!fullName) {
@@ -350,6 +393,11 @@ export const updateName = asyncHandler(async (req, res, next) => {
 
 })
 
+/**
+ * @UPDATE_EMAIL
+ * @ROUTE @POST {{URL}}/api/v1/user/update-email
+ * @ACCESS loggedIn users only
+ */
 export const updateEmail = asyncHandler(async (req, res, next) => {
     const email = req.body;
     if (!email) {
@@ -393,6 +441,11 @@ export const updateEmail = asyncHandler(async (req, res, next) => {
 
 })
 
+/**
+ * @CHANGE_EMAIL
+ * @ROUTE @POST {{URL}}/api/v1/user/change-email/:resetToken
+ * @ACCESS mailed users only
+ */
 export const changeEmail = asyncHandler(async (req, res, next) => {
     const { resetToken } = req.params
     const { email } = req.body
@@ -428,6 +481,11 @@ export const changeEmail = asyncHandler(async (req, res, next) => {
         )
 })
 
+/**
+ * @UPDATE_AVATAR
+ * @ROUTE @POST {{URL}}/api/v1/user/update-avatar
+ * @ACCESS loggedIn users only
+ */
 export const updateAvatar = asyncHandler(async (req, res, next) => {
     const avatar = req.file
     console.log(avatar);
@@ -463,6 +521,12 @@ export const updateAvatar = asyncHandler(async (req, res, next) => {
         )
 
 })
+
+/**
+ * @UPDATE_COVER_IMAGE
+ * @ROUTE @POST {{URL}}/api/v1/user//update-coverImage
+ * @ACCESS loggedIn users only
+ */
 export const updateCoverImage = asyncHandler(async (req, res, next) => {
     const coverImage = req.file
     console.log(coverImage);

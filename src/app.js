@@ -4,7 +4,6 @@ import express from 'express';
 import morgan from 'morgan';
 import errorMiddleware from './middleware/error.middleware.js';
 import envVar from './configs/config.js'
-import userRouter from './routes/user.routes.js';
 const app = express();
 
 
@@ -34,9 +33,12 @@ app.get('/time', async (_req, res) => {
     res.status(200).json('Running very fastly');
 });
 
-// user routes
+// import routers
+import userRouter from './routes/user.routes.js';
+import courseRouter from './routes/course.routes.js';
 
 app.use('/api/v1/user', userRouter);
+app.use('/api/v1/courses', courseRouter);
 
 // default catch for all the other routes
 

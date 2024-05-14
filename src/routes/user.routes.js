@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { changeEmail, changePassword, forgotPassword, loginUser, logoutUser, registerUser, resetPassword, updateAvatar, updateCoverImage, updateEmail, updateName, userData } from '../controllers/user.controller.js';
+import { changeEmail, changePassword, forgotPassword, loginUser, logoutUser, refreshAccessToken, registerUser, resetPassword, updateAvatar, updateCoverImage, updateEmail, updateName, userData } from '../controllers/user.controller.js';
 import upload from '../middleware/multer.middleware.js';
-import isLoggedIn from '../middleware/auth.middleware.js';
+import { isLoggedIn } from '../middleware/auth.middleware.js';
 const router = Router();
 
 router.route('/register').post(
@@ -11,7 +11,7 @@ router.route('/register').post(
             { name: 'coverImage', maxCount: 1 }
         ]
     ), registerUser);
-
+router.route('/refreshAccessToken').post(refreshAccessToken)
 router.route('/login').post(loginUser);
 router.route('/logout').post(isLoggedIn, logoutUser);
 router.route('/profile').get(isLoggedIn, userData)

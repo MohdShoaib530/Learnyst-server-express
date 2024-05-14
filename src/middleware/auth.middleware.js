@@ -4,7 +4,7 @@ import envVar from '../configs/config.js'
 import asyncHandler from '../utils/asyncHandler.js'
 import User from '../models/user.model.js'
 
-const isLoggedIn = asyncHandler(async (req, _, next) => {
+export const isLoggedIn = asyncHandler(async (req, _, next) => {
     try {
         const token = req.cookies?.accessToken || req.header('Authorization')?.replace("Bearer ", "")
         if (!token) {
@@ -30,4 +30,14 @@ const isLoggedIn = asyncHandler(async (req, _, next) => {
     }
 })
 
-export default isLoggedIn;
+export const authorizeRoles = ([...roles]) =>
+    asyncHandler(async (req, _res, next) => {
+        if (!roles.includes(req.user?.role)) {
+            console.log('object', req.user?.role);
+            throw next(
+                new apiError("You do not have permission to view this route", 403)
+            )
+        }
+
+        next()
+    })
