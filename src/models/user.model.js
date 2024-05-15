@@ -36,6 +36,10 @@ const userSchema = new mongoose.Schema(
             id: String,
             status: String,
         },
+        status: {
+            type: String,
+            default: false
+        },
         avatar: {
             public_id: {
                 type: String
@@ -65,6 +69,8 @@ const userSchema = new mongoose.Schema(
         forgotPasswordTokenExpiry: Date,
         emailChangeToken: String,
         emailChangeTokenExpiry: Date,
+        userStatusToken: String,
+        userStatusTokenExpiry: Date
     },
     { timestamps: true }
 );
@@ -122,7 +128,6 @@ userSchema.methods = {
             .digest('hex')
 
         this.forgotPasswordTokenExpiry = Date.now() + 15 * 60 * 1000
-
         return resetToken
     },
 
@@ -138,6 +143,18 @@ userSchema.methods = {
 
         return resetToken
     },
+
+    generateUserStatusToken: function () {
+        const StatusToken = crypto.randomBytes(20).toString('hex')
+
+        this.userStatusToken = crypto
+            .createHash('sha256')
+            .update(StatusToken)
+            .digest('hex')
+
+        this.userStatusTokenExpiry = Date.now() + 15 * 60 * 1000
+        return StatusToken
+    }
 };
 
 const User = mongoose.model('User', userSchema);

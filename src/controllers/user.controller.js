@@ -18,11 +18,11 @@ const cookieOptions = {
 /**
  * @REGISTER_USER
  * @POST {{URL}}/api/v1/user/register
- * @ACCESS register user
+ * @ACCESS registered user
  */
 export const registerUser = asyncHandler(async (req, res, next) => {
     const { fullName, email, password } = req.body;
-    console.log('pass', password, email);
+    console.log('userdetails', email, password);
 
     if (
         [fullName, email, password].some((field) => field?.trim() === '')
@@ -34,6 +34,7 @@ export const registerUser = asyncHandler(async (req, res, next) => {
     if (userExists) {
         return next(new apiError('Email already registered', 400));
     }
+
     const user = await User.create({
         fullName,
         email,
@@ -51,60 +52,149 @@ export const registerUser = asyncHandler(async (req, res, next) => {
         refreshToken: ""
     });
 
-    const createdUser = await User.findById(user._id).select("-password -refreshToken")
+    const createdUser = await User.findById(user._id)
     if (!createdUser) {
         return next(
             new apiError('User registration failed, please try again later')
         );
     }
-    console.log('createUser', createdUser);
+    try {
 
-    if (req.files?.avatar || req.files?.coverImage) {
-        try {
-            let avatarLocalPath;
-            if (
-                req.files &&
-                Array.isArray(req.files.avatar) &&
-                req.files.avatar[0].path
-            ) {
-                avatarLocalPath = req.files.avatar[0].path;
-            }
-            console.log('avatarlocal', avatarLocalPath);
-            const avatarCloudinary = await cloudinaryUpload(avatarLocalPath);
+        const StatusToken = await user.generateUserStatusToken()
+        console.log('StatusToken', StatusToken);
+        await user.save();
+        user.userStatusToken = undefined;
+        user.userStatusTokenExpiry = undefined
 
-            if (avatarCloudinary) {
-                user.avatar.public_id = avatarCloudinary?.public_id;
-                user.avatar.secure_url = avatarCloudinary?.secure_url;
-            }
+        const statusTokendUrl = `${envVar.frontendUrl}/confirm-status/${StatusToken}`;
+        const subject = "Confirm User Status";
 
-            let coverImageLocalPath;
-            if (
-                req.files &&
-                Array.isArray(req.files.coverImage) &&
-                req.files.coverImage[0].path
-            ) {
-                coverImageLocalPath = req.files.coverImage[0].path;
-            }
-            const coverImageCloudinary = await cloudinaryUpload(coverImageLocalPath);
-            if (coverImageCloudinary) {
-                user.coverImage.public_id = coverImageCloudinary?.public_id;
-                user.coverImage.secure_url = coverImageCloudinary?.secure_url;
-            }
-        } catch (error) {
-            console.log('Error while uploading image', error);
+        const message = `You can confirm user status by clicking <a href=${statusTokendUrl} target="_blank">Reset your password</a>\nIf the above link does not work for some reason then copy paste this link in new tab ${statusTokendUrl}`;
+
+        const emailSend = await sendEmail(email, subject, message)
+
+        if (!emailSend) {
+            throw next(new apiError("Email not sent", 401,))
         }
+
+        res
+            .status(200)
+            .json(
+                new apiResponse(200, createdUser, "User created and Email sent successfully")
+            )
+    } catch (error) {
+        console.log('error while creating user or sending email', error);
+        await User.findByIdAndDelete(user._id)
+        return next(
+            new apiError('error while sending email and user deleted', 401, error)
+        )
     }
 
-    const { accessToken, refreshToken } = await generateTokens(createdUser._id);
-    createdUser.refreshToken = undefined;
 
-    console.log('access', refreshToken);
-
-    res.status(201)
-        .cookie('accessToken', accessToken, cookieOptions)
-        .cookie('refreshToken', refreshToken, cookieOptions)
-        .json(new apiResponse(201, createdUser, 'User created successfully'));
 });
+
+/**
+ * @CONFIRM_STATUS
+ * @POST {{URL}}/api/v1/user/confirm-status
+ * @ACCESS mailed user
+ */
+export const confirmUserStatus = asyncHandler(async (req, res, next) => {
+    const { confirmToken } = req.params
+    if (!confirmToken) {
+        throw next(new apiError('confirmToken is required required', 400));
+    }
+    const userStatusToken = crypto
+        .createHash('sha256')
+        .update(confirmToken)
+        .digest('hex')
+
+    const user = await User.findOne({
+        userStatusToken,
+        userStatusTokenExpiry: { $gt: Date.now() }
+    })
+
+    if (!user) {
+        return next(
+            new apiError('Token is invalid or expired, please try again', 401)
+        );
+    }
+    user.status = true
+    user.userStatusToken = undefined;
+    user.userStatusTokenExpiry = undefined
+    await user.save()
+
+    res
+        .status(201)
+        .json(new apiResponse(201, user, 'User status confirmed successfully'));
+})
+
+/**
+ * @GETSTATUS_TOKEN
+ * @POST {{URL}}/api/v1/user/getStatus_token
+ * @ACCESS mailed user
+ */
+export const getUserStatusToken = asyncHandler(async (req, res, next) => {
+    const { email } = req.body;
+
+    if (!email) {
+        throw next(new apiError('email is required', 400));
+    }
+    const user = await User.findOne({ email });
+
+    if (!user) {
+        return next(new apiError('Email is not registered', 400));
+    }
+
+    try {
+
+        const StatusToken = await user.generateUserStatusToken()
+        console.log('StatusToken', StatusToken);
+        await user.save();
+        user.userStatusToken = undefined;
+        user.userStatusTokenExpiry = undefined
+
+        const statusTokendUrl = `${envVar.frontendUrl}/confirm-status/${StatusToken}`;
+        const subject = "Confirm User Status";
+
+        const message = `You can confirm user status by clicking <a href=${statusTokendUrl} target="_blank">Reset your password</a>\nIf the above link does not work for some reason then copy paste this link in new tab ${statusTokendUrl}`;
+
+        const emailSend = await sendEmail(email, subject, message)
+
+        if (!emailSend) {
+            throw next(new apiError("Email not sent", 401,))
+        }
+
+        res
+            .status(200)
+            .json(
+                new apiResponse(200, user, "userStatusToken sent successfully")
+            )
+    } catch (error) {
+        console.log('error while sending email', error);
+        return next(
+            new apiError('error while sending email ', 401, error)
+        )
+    }
+})
+/**
+ * @DELETE_USER
+ * @POST {{URL}}/api/v1/user/delete-user
+ * @ACCESS loggedIn user
+ */
+export const deleteUser = asyncHandler(async (req, res, next) => {
+    const deletedUser = await User.findByIdAndDelete(req.user?._id)
+
+    if (!deletedUser) {
+        throw next(new apiError("something went wrong while deleting the user", 500))
+    }
+    res
+        .status(200)
+        .clearCookie('accessToken', cookieOptions)
+        .clearCookie('refreshToken', cookieOptions)
+        .json(
+            new apiResponse(200, deletedUser, 'user deleted successfully')
+        )
+})
 
 /**
  * @LOGIN_USER
@@ -243,6 +333,7 @@ export const forgotPassword = asyncHandler(async (req, res, next) => {
     }
 
     const resetToken = await user.generatePasswordResetToken()
+    console.log('resetToken', resetToken);
     await user.save();
 
     const resetPasswordUrl = `${envVar.frontendUrl}/reset-password/${resetToken}`;

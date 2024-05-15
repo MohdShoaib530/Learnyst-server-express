@@ -1,7 +1,7 @@
 import upload from '../middleware/multer.middleware.js';
-import { authorizeRoles, isLoggedIn } from '../middleware/auth.middleware.js';
+import { authorizeRoles, authorizeSubscribers, isLoggedIn } from '../middleware/auth.middleware.js';
 import { Router } from 'express';
-import { createCourse, getAllCourses } from '../controllers/course.controller.js';
+import { addLectureToCourseById, createCourse, deleteCourseById, getAllCourses, getLecturesByCourseId, removeLectureFromCourse, updateCourseById } from '../controllers/course.controller.js';
 
 const router = Router()
 
@@ -10,22 +10,22 @@ router
     .get(getAllCourses)
     .post(
         isLoggedIn,
-        authorizeRoles(['ADMIN', 'TEACHER']),
+        authorizeRoles(['ADMIN']),
         upload.single('thumbnail'),
         createCourse
     )
-// .delete(isLoggedIn, authorizeRoles('ADMIN'), removeLectureFromCourse);
+    .delete(isLoggedIn, authorizeRoles(['ADMIN', 'TEACHER']), removeLectureFromCourse);
 
-// router
-//     .route('/:id')
-//     .get(isLoggedIn, authorizeSubscribers, getLecturesByCourseId) // Added authorizeSubscribers to check if user is admin or subscribed if not then forbid the access to the lectures
-//     .post(
-//         isLoggedIn,
-//         authorizeRoles('ADMIN'),
-//         upload.single('lecture'),
-//         addLectureToCourseById
-//     )
-//     .put(isLoggedIn, authorizeRoles('ADMIN'), updateCourseById)
-//     .delete(isLoggedIn, authorizeRoles("ADMIN"), deleteCourseById);
+router
+    .route('/:id')
+    .get(isLoggedIn, authorizeSubscribers, getLecturesByCourseId)
+    .post(
+        isLoggedIn,
+        authorizeRoles(['ADMIN', 'TEACHER']),
+        upload.single('lecture'),
+        addLectureToCourseById
+    )
+    .patch(isLoggedIn, authorizeRoles(['ADMIN', 'TEACHER']),upload.single('thumbnail'), updateCourseById)
+    .delete(isLoggedIn, authorizeRoles(["ADMIN"]), deleteCourseById);
 
 export default router;
