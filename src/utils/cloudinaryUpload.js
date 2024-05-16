@@ -1,5 +1,12 @@
 import fs from 'fs';
-import cloudinary from 'cloudinary'
+import cloudinary, { v2 } from 'cloudinary'
+
+// Cloudinary configuration
+v2.config({
+    cloud_name: envVar.cloudinaryCloudName,
+    api_key: envVar.cloudinaryApiKey,
+    api_secret: envVar.cloudinaryApiSecret
+});
 
 const cloudinaryUpload = async (file) => {
     try {

@@ -16,7 +16,7 @@ const sendEmail = async function (email, subject, message) {
     return await transporter.sendMail(
         {
             from: envVar.smtpFromEmail,
-            to: envVar.smtpFromEmail,
+            to: email,
             subject: subject,
             html: message
         }

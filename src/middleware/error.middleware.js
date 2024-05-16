@@ -2,11 +2,8 @@ import fs from 'fs'
 
 const errorMiddleware = (err, req, res, _next) => {
 
-    if (req?.files?.coverImage[0].path) {
-        fs.unlinkSync(req.files.coverImage[0].path)
-    }
-    if (req?.files?.coverImage[0].path) {
-        fs.unlinkSync(req.files.coverImage[0].path)
+    if (req.file?.path) {
+        fs.unlinkSync(req.file.path)
     }
     err.statusCode = err.statusCode || 500;
     err.message = err.message || "Error middleware issue"

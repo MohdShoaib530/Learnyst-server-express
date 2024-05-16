@@ -1,15 +1,8 @@
 import dotenv from 'dotenv';
 dotenv.config()
 import envVar from './configs/config.js'
-import { v2 } from 'cloudinary';
 import app from './app.js';
 import connectToDb from './configs/dbConn.js';
-
-v2.config({
-    cloud_name: envVar.cloudinaryCloudName,
-    api_key: envVar.cloudinaryApiKey,
-    api_secret: envVar.cloudinaryApiSecret
-});
 
 connectToDb()
     .then(() => {

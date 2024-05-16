@@ -37,10 +37,12 @@ app.get('/time', async (_req, res) => {
 import userRouter from './routes/user.routes.js';
 import courseRouter from './routes/course.routes.js';
 import paymentRouter from './routes/payment.routes.js';
+import miscellaneousRouter from './routes/miscellaneous.routes.js';
 
 app.use('/api/v1/user', userRouter);
 app.use('/api/v1/courses', courseRouter);
 app.use('/api/v1/payment', paymentRouter);
+app.use('/api/v1/', miscellaneousRouter);
 
 // default catch for all the other routes
 

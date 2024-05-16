@@ -9,7 +9,6 @@ const generateTokens = async (id) => {
 
         user.refreshToken = refreshToken
         await user.save({ validateBeforeSave: false })
-        console.log('tuser', user);
         return { accessToken, refreshToken }
     } catch (error) {
         console.log('error in tokens', error);
