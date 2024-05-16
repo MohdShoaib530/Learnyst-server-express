@@ -4,12 +4,12 @@ This repository contains the server-side application for the Learning Management
 
 ## Table of Contents
 
--   [Introduction](#introduction)
--   [Getting Started](#getting-started)
--   [Dependencies](#dependencies)
--   [Project Structure](#project-structure)
--   [Contributing](#contributing)
--   [License](#license)
+- [Introduction](#introduction)
+- [Getting Started](#getting-started)
+- [Dependencies](#dependencies)
+- [Project Structure](#project-structure)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Introduction
 

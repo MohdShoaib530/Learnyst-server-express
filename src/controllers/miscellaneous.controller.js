@@ -10,27 +10,27 @@ import sendEmail from '../utils/sendEmail.js';
  * @ACCESS Public
  */
 export const contactUs = asyncHandler(async (req, res, next) => {
-    const { name, email, message } = req.body;
+  const { name, email, message } = req.body;
 
-    if (!name || !email || !message) {
-        return next(new apiError('Name, Email, Message are required'));
-    }
+  if (!name || !email || !message) {
+    return next(new apiError('Name, Email, Message are required'));
+  }
 
-    try {
-        const subject = 'Contact Us Form';
-        const textMessage = `${name} - ${email} <br /> ${message}`;
+  try {
+    const subject = 'Contact Us Form';
+    const textMessage = `${name} - ${email} <br /> ${message}`;
 
-        await sendEmail(process.env.CONTACT_US_EMAIL, subject, textMessage);
-    } catch (error) {
-        console.log(error);
-        return next(new apiError(error.message, 400));
-    }
+    await sendEmail(process.env.CONTACT_US_EMAIL, subject, textMessage);
+  } catch (error) {
+    console.log(error);
+    return next(new apiError(error.message, 400));
+  }
 
-    res
-        .status(200)
-        .json(
-            new apiResponse(200, {}, 'Your request has been submitted successfully')
-        );
+  res
+    .status(200)
+    .json(
+      new apiResponse(200, {}, 'Your request has been submitted successfully')
+    );
 });
 
 /**
@@ -39,21 +39,21 @@ export const contactUs = asyncHandler(async (req, res, next) => {
  * @ACCESS Private(ADMIN ONLY)
  */
 export const userStats = asyncHandler(async (req, res, next) => {
-    const allUsersCount = await User.countDocuments();
+  const allUsersCount = await User.countDocuments();
 
-    const subscribedUsersCount = await User.countDocuments({
-        'subscription.status': 'active',
-    });
+  const subscribedUsersCount = await User.countDocuments({
+    'subscription.status': 'active'
+  });
 
-    res
-        .status(200)
-        .json(
-            new apiResponse(
-                200,
-                {
-                    allUsersCount,
-                    subscribedUsersCount
-                },
-                'All registered users count')
-        );
+  res
+    .status(200)
+    .json(
+      new apiResponse(
+        200,
+        {
+          allUsersCount,
+          subscribedUsersCount
+        },
+        'All registered users count')
+    );
 });
