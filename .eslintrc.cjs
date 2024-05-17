@@ -19,9 +19,7 @@ module.exports = {
     ecmaVersion: '2022',
     sourceType: 'module'
   },
-  plugins: [
-    'simple-import-sort'
-  ],
+  plugins: ['simple-import-sort'],
   rules: {
     indent: ['error', 2],
     'linebreak-style': ['error', 'windows'],

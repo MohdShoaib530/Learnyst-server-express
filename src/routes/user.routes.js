@@ -1,6 +1,23 @@
 import { Router } from 'express';
 
-import { changeEmail, changePassword, confirmUserStatus, deleteUser, forgotPassword, getUserStatusToken, loginUser, logoutUser, refreshAccessToken, registerUser, resetPassword, updateAvatar, updateCoverImage, updateEmail, updateName, userData } from '../controllers/user.controller.js';
+import {
+  changeEmail,
+  changePassword,
+  confirmUserStatus,
+  deleteUser,
+  forgotPassword,
+  getUserStatusToken,
+  loginUser,
+  logoutUser,
+  refreshAccessToken,
+  registerUser,
+  resetPassword,
+  updateAvatar,
+  updateCoverImage,
+  updateEmail,
+  updateName,
+  userData
+} from '../controllers/user.controller.js';
 import { isLoggedIn } from '../middleware/auth.middleware.js';
 import upload from '../middleware/multer.middleware.js';
 const router = Router();
@@ -19,8 +36,11 @@ router.route('/chanage-password').post(isLoggedIn, changePassword);
 router.route('/update-username').post(isLoggedIn, updateName);
 router.route('/update-email').post(isLoggedIn, updateEmail);
 router.route('/change-email/:resetToken').post(changeEmail);
-router.route('/update-avatar').post(isLoggedIn, upload.single('avatar'), updateAvatar);
-router.route('/update-coverImage').post(isLoggedIn, upload.single('coverImage'), updateCoverImage);
-
+router
+  .route('/update-avatar')
+  .post(isLoggedIn, upload.single('avatar'), updateAvatar);
+router
+  .route('/update-coverImage')
+  .post(isLoggedIn, upload.single('coverImage'), updateCoverImage);
 
 export default router;

@@ -45,15 +45,14 @@ export const userStats = asyncHandler(async (req, res, next) => {
     'subscription.status': 'active'
   });
 
-  res
-    .status(200)
-    .json(
-      new apiResponse(
-        200,
-        {
-          allUsersCount,
-          subscribedUsersCount
-        },
-        'All registered users count')
-    );
+  res.status(200).json(
+    new apiResponse(
+      200,
+      {
+        allUsersCount,
+        subscribedUsersCount
+      },
+      'All registered users count'
+    )
+  );
 });

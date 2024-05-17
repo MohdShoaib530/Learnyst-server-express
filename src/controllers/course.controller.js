@@ -6,7 +6,6 @@ import apiResponse from '../utils/apiResponse.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import cloudinaryUpload from '../utils/cloudinaryUpload.js';
 
-
 /**
  * @ALL_COURSES
  * @ROUTE @GET {{URL}}/api/v1/courses
@@ -22,9 +21,7 @@ export const getAllCourses = asyncHandler(async (_req, res, next) => {
 
   res
     .status(200)
-    .json(
-      new apiResponse(200, courses, 'All courses fetched successfully')
-    );
+    .json(new apiResponse(200, courses, 'All courses fetched successfully'));
 });
 
 /**
@@ -45,7 +42,8 @@ export const createCourse = asyncHandler(async (req, res, next) => {
     category,
     thumbnail: {
       public_id: title,
-      secure_url: 'https://res.cloudinary.com/du9jzqlpt/image/upload/v1674647316/avatar_drzgxv.jpg'
+      secure_url:
+        'https://res.cloudinary.com/du9jzqlpt/image/upload/v1674647316/avatar_drzgxv.jpg'
     },
     createdBy: req.user?._id
   });
@@ -83,9 +81,7 @@ export const createCourse = asyncHandler(async (req, res, next) => {
 
   res
     .status(201)
-    .json(
-      new apiResponse(201, course, 'course created successfully')
-    );
+    .json(new apiResponse(201, course, 'course created successfully'));
 });
 
 /**
@@ -147,9 +143,7 @@ export const removeLectureFromCourse = asyncHandler(async (req, res, next) => {
   // Return response
   res
     .status(200)
-    .json(
-      new apiResponse(200, course, 'lecture deleted successfully')
-    );
+    .json(new apiResponse(200, course, 'lecture deleted successfully'));
 });
 
 /**
@@ -168,9 +162,7 @@ export const getLecturesByCourseId = asyncHandler(async (req, res, next) => {
 
   res
     .status(200)
-    .json(
-      new apiResponse(200, course, 'course lectures fetched successfully')
-    );
+    .json(new apiResponse(200, course, 'course lectures fetched successfully'));
 });
 
 /**
@@ -221,16 +213,13 @@ export const addLectureToCourseById = asyncHandler(async (req, res, next) => {
 
     res
       .status(200)
-      .json(
-        new apiResponse(201, course, 'lecture added successfully')
-      );
-
+      .json(new apiResponse(201, course, 'lecture added successfully'));
   } catch (error) {
     console.log('Error while uploading image', error);
-    throw next(new apiError('something went wrong while adding lecture', 500, error));
-
+    throw next(
+      new apiError('something went wrong while adding lecture', 500, error)
+    );
   }
-
 });
 
 /**
@@ -250,7 +239,9 @@ export const updateCourseById = asyncHandler(async (req, res, next) => {
 
   if (req.file) {
     try {
-      const deleteThumbnail = await cloudinary.v2.uploader.destroy(course.thumbnail.public_id);
+      const deleteThumbnail = await cloudinary.v2.uploader.destroy(
+        course.thumbnail.public_id
+      );
       const thumbnailCloudinary = await cloudinaryUpload(req.file);
 
       // If success
@@ -285,9 +276,7 @@ export const updateCourseById = asyncHandler(async (req, res, next) => {
   // Sending the response after success
   res
     .status(200)
-    .json(
-      new apiResponse(200, updateCourse, 'course updated successfully')
-    );
+    .json(new apiResponse(200, updateCourse, 'course updated successfully'));
 });
 
 /**
@@ -310,7 +299,5 @@ export const deleteCourseById = asyncHandler(async (req, res, next) => {
   // Send the message as response
   res
     .status(200)
-    .json(
-      new apiResponse(200, course, 'course deleted successfully')
-    );
+    .json(new apiResponse(200, course, 'course deleted successfully'));
 });

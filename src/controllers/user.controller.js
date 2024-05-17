@@ -25,9 +25,7 @@ export const registerUser = asyncHandler(async (req, res, next) => {
   const { fullName, email, password } = req.body;
   console.log('userdetails', email, password);
 
-  if (
-    [fullName, email, password].some((field) => field?.trim() === '')
-  ) {
+  if ([fullName, email, password].some((field) => field?.trim() === '')) {
     throw next(new apiError(400, 'All fields are required'));
   }
   const userExists = await User.findOne({ email });
@@ -43,12 +41,12 @@ export const registerUser = asyncHandler(async (req, res, next) => {
     avatar: {
       public_id: email,
       secure_url:
-                'https://res.cloudinary.com/du9jzqlpt/image/upload/v1674647316/avatar_drzgxv.jpg'
+        'https://res.cloudinary.com/du9jzqlpt/image/upload/v1674647316/avatar_drzgxv.jpg'
     },
     coverImage: {
       public_id: email,
       secure_url:
-                'https://res.cloudinary.com/du9jzqlpt/image/upload/v1674647316/avatar_drzgxv.jpg'
+        'https://res.cloudinary.com/du9jzqlpt/image/upload/v1674647316/avatar_drzgxv.jpg'
     },
     refreshToken: ''
   });
@@ -60,7 +58,6 @@ export const registerUser = asyncHandler(async (req, res, next) => {
     );
   }
   try {
-
     const StatusToken = await user.generateUserStatusToken();
     console.log('StatusToken', StatusToken);
     await user.save();
@@ -81,7 +78,11 @@ export const registerUser = asyncHandler(async (req, res, next) => {
     res
       .status(200)
       .json(
-        new apiResponse(200, createdUser, 'User created and Email sent successfully')
+        new apiResponse(
+          200,
+          createdUser,
+          'User created and Email sent successfully'
+        )
       );
   } catch (error) {
     console.log('error while creating user or sending email', error);
@@ -90,8 +91,6 @@ export const registerUser = asyncHandler(async (req, res, next) => {
       new apiError('error while sending email and user deleted', 401, error)
     );
   }
-
-
 });
 
 /**
@@ -147,7 +146,6 @@ export const getUserStatusToken = asyncHandler(async (req, res, next) => {
   }
 
   try {
-
     const StatusToken = await user.generateUserStatusToken();
     console.log('StatusToken', StatusToken);
     await user.save();
@@ -167,14 +165,10 @@ export const getUserStatusToken = asyncHandler(async (req, res, next) => {
 
     res
       .status(200)
-      .json(
-        new apiResponse(200, user, 'userStatusToken sent successfully')
-      );
+      .json(new apiResponse(200, user, 'userStatusToken sent successfully'));
   } catch (error) {
     console.log('error while sending email', error);
-    return next(
-      new apiError('error while sending email ', 401, error)
-    );
+    return next(new apiError('error while sending email ', 401, error));
   }
 });
 /**
@@ -186,15 +180,15 @@ export const deleteUser = asyncHandler(async (req, res, next) => {
   const deletedUser = await User.findByIdAndDelete(req.user?._id);
 
   if (!deletedUser) {
-    throw next(new apiError('something went wrong while deleting the user', 500));
+    throw next(
+      new apiError('something went wrong while deleting the user', 500)
+    );
   }
   res
     .status(200)
     .clearCookie('accessToken', cookieOptions)
     .clearCookie('refreshToken', cookieOptions)
-    .json(
-      new apiResponse(200, deletedUser, 'user deleted successfully')
-    );
+    .json(new apiResponse(200, deletedUser, 'user deleted successfully'));
 });
 
 /**
@@ -205,9 +199,7 @@ export const deleteUser = asyncHandler(async (req, res, next) => {
 export const loginUser = asyncHandler(async (req, res, next) => {
   const { email, password } = req.body;
 
-  if (
-    [email, password].some((field) => field?.trim() === '')
-  ) {
+  if ([email, password].some((field) => field?.trim() === '')) {
     throw next(new apiError('All fields are required', 400));
   }
 
@@ -229,9 +221,7 @@ export const loginUser = asyncHandler(async (req, res, next) => {
     .status(200)
     .cookie('accessToken', accessToken, cookieOptions)
     .cookie('refreshToken', refreshToken, cookieOptions)
-    .json(
-      new apiResponse(200, user, 'User loggedIn successfully', true)
-    );
+    .json(new apiResponse(200, user, 'User loggedIn successfully', true));
 });
 
 /**
@@ -258,9 +248,7 @@ export const logoutUser = asyncHandler(async (req, res, next) => {
     .status(200)
     .clearCookie('accessToken', cookieOptions)
     .clearCookie('refreshToken', cookieOptions)
-    .json(
-      new apiResponse(200, {}, 'User Logged Out Successfully')
-    );
+    .json(new apiResponse(200, {}, 'User Logged Out Successfully'));
 });
 
 /**
@@ -270,13 +258,17 @@ export const logoutUser = asyncHandler(async (req, res, next) => {
  */
 export const refreshAccessToken = asyncHandler(async (req, res, next) => {
   try {
-    const incomingRefreshToken = req.cookie?.refreshToken || req.body?.refreshToken;
+    const incomingRefreshToken =
+      req.cookie?.refreshToken || req.body?.refreshToken;
 
     if (!incomingRefreshToken) {
       throw next(new apiError('unable to get the refreshToken', 401));
     }
 
-    const decodedRefreshToken = await jwt.verify(incomingRefreshToken, envVar.refreshTokenSecret);
+    const decodedRefreshToken = await jwt.verify(
+      incomingRefreshToken,
+      envVar.refreshTokenSecret
+    );
 
     if (!decodedRefreshToken) {
       throw next(new apiError('Invalid refreshToken', 401));
@@ -293,11 +285,7 @@ export const refreshAccessToken = asyncHandler(async (req, res, next) => {
       .status(200)
       .cookie('accessToken', accessToken, cookieOptions)
       .cookie('refreshToken', refreshToken, cookieOptions)
-      .json(
-        new apiResponse(200, user, 'refreshToken refreshed')
-      );
-
-
+      .json(new apiResponse(200, user, 'refreshToken refreshed'));
   } catch (error) {
     console.log('error', error);
   }
@@ -311,10 +299,7 @@ export const refreshAccessToken = asyncHandler(async (req, res, next) => {
 export const userData = asyncHandler(async (req, res, next) => {
   res
     .status(200)
-    .json(
-      new apiResponse(200, req.user, 'User data got successfully')
-    );
-
+    .json(new apiResponse(200, req.user, 'User data got successfully'));
 });
 
 /**
@@ -350,11 +335,7 @@ export const forgotPassword = asyncHandler(async (req, res, next) => {
       throw next(new apiError('Email not sent', 401));
     }
 
-    res
-      .status(200)
-      .json(
-        new apiResponse(200, {}, 'Email sent successfully')
-      );
+    res.status(200).json(new apiResponse(200, {}, 'Email sent successfully'));
   } catch (error) {
     console.log('error while sending email', error);
     user.forgotPasswordToken = undefined;
@@ -362,11 +343,8 @@ export const forgotPassword = asyncHandler(async (req, res, next) => {
 
     await user.save();
 
-    return next(
-      new apiError('Email not sent', 401, error)
-    );
+    return next(new apiError('Email not sent', 401, error));
   }
-
 });
 
 /**
@@ -406,9 +384,7 @@ export const resetPassword = asyncHandler(async (req, res, next) => {
 
   res
     .status(200)
-    .json(
-      new apiResponse(200, user, 'Password changed successfully')
-    );
+    .json(new apiResponse(200, user, 'Password changed successfully'));
 });
 
 /**
@@ -443,21 +419,15 @@ export const changePassword = asyncHandler(async (req, res, next) => {
       .status(200)
       .clearCookie('accessToken', cookieOptions)
       .clearCookie('refreshToken', cookieOptions)
-      .json(
-        new apiResponse(200, user, 'Password changed successfully')
-      );
-
+      .json(new apiResponse(200, user, 'Password changed successfully'));
   } catch (error) {
     console.log('error', error);
     res
       .status(400)
       .clearCookie('accessToken', cookieOptions)
       .clearCookie('refreshToken', cookieOptions)
-      .json(
-        new apiError('Password not changed', 400, error)
-      );
+      .json(new apiError('Password not changed', 400, error));
   }
-
 });
 
 /**
@@ -477,12 +447,7 @@ export const updateName = asyncHandler(async (req, res, next) => {
   user.fullName = fullName;
   await user.save();
 
-  res
-    .status(200)
-    .json(
-      new apiResponse(200, user, 'fullName has been changed')
-    );
-
+  res.status(200).json(new apiResponse(200, user, 'fullName has been changed'));
 });
 
 /**
@@ -514,11 +479,7 @@ export const updateEmail = asyncHandler(async (req, res, next) => {
     if (!emailSend) {
       throw next(new apiError('Email not sent', 400));
     }
-    res
-      .status(200)
-      .json(
-        new apiResponse(200, {}, 'Email sent successfully')
-      );
+    res.status(200).json(new apiResponse(200, {}, 'Email sent successfully'));
   } catch (error) {
     console.log('error while sending email', error);
     user.emailChangeToken = undefined;
@@ -526,11 +487,8 @@ export const updateEmail = asyncHandler(async (req, res, next) => {
 
     await user.save();
 
-    return next(
-      new apiError('Email not sent', 400, error)
-    );
+    return next(new apiError('Email not sent', 400, error));
   }
-
 });
 
 /**
@@ -568,9 +526,7 @@ export const changeEmail = asyncHandler(async (req, res, next) => {
 
   res
     .status(200)
-    .json(
-      new apiResponse(200, user, 'Email changed successfully')
-    );
+    .json(new apiResponse(200, user, 'Email changed successfully'));
 });
 
 /**
@@ -591,7 +547,9 @@ export const updateAvatar = asyncHandler(async (req, res, next) => {
       avatarLocalPath = req.file?.path;
     }
     console.log('avatarlocal', avatarLocalPath);
-    const destroyOldAvatar = await cloudinary.v2.uploader.destroy(user.avatar?.public_id);
+    const destroyOldAvatar = await cloudinary.v2.uploader.destroy(
+      user.avatar?.public_id
+    );
     const avatarUploadCloudinary = await cloudinaryUpload(avatarLocalPath);
 
     if (avatarUploadCloudinary) {
@@ -599,19 +557,16 @@ export const updateAvatar = asyncHandler(async (req, res, next) => {
       user.avatar.secure_url = avatarUploadCloudinary?.secure_url;
       await user.save();
     }
-
   } catch (error) {
     console.log('Error while uploading image', error);
-    throw next(new apiError('something went wrong while updating avatar', 500, error));
-
+    throw next(
+      new apiError('something went wrong while updating avatar', 500, error)
+    );
   }
 
   res
     .status(200)
-    .json(
-      new apiResponse(200, user, 'avatar changed successfully')
-    );
-
+    .json(new apiResponse(200, user, 'avatar changed successfully'));
 });
 
 /**
@@ -632,24 +587,25 @@ export const updateCoverImage = asyncHandler(async (req, res, next) => {
       coverImageLocalPath = req.file?.path;
     }
     console.log('avatarlocal', coverImageLocalPath);
-    const destroyOldCoverImage = await cloudinary.v2.uploader.destroy(user.coverImage?.public_id);
-    const coverImageUploadCloudinary = await cloudinaryUpload(coverImageLocalPath);
+    const destroyOldCoverImage = await cloudinary.v2.uploader.destroy(
+      user.coverImage?.public_id
+    );
+    const coverImageUploadCloudinary =
+      await cloudinaryUpload(coverImageLocalPath);
 
     if (coverImageUploadCloudinary) {
       user.coverImage.public_id = coverImageUploadCloudinary?.public_id;
       user.coverImage.secure_url = coverImageUploadCloudinary?.secure_url;
       await user.save();
     }
-
   } catch (error) {
     console.log('Error while uploading image', error);
-    throw next(new apiError('something went wrong while updating avatar', 500, error));
-
+    throw next(
+      new apiError('something went wrong while updating avatar', 500, error)
+    );
   }
 
   res
     .status(200)
-    .json(
-      new apiResponse(200, user, 'coverImage changed successfully')
-    );
+    .json(new apiResponse(200, user, 'coverImage changed successfully'));
 });

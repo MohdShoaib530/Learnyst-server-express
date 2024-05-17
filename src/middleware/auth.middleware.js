@@ -7,7 +7,9 @@ import asyncHandler from '../utils/asyncHandler.js';
 
 export const isLoggedIn = asyncHandler(async (req, _, next) => {
   try {
-    const token = req.cookies?.accessToken || req.header('Authorization')?.replace('Bearer ', '');
+    const token =
+      req.cookies?.accessToken ||
+      req.header('Authorization')?.replace('Bearer ', '');
     if (!token) {
       return next(new apiError('Unable to get the accessToken', 401));
     }
@@ -27,7 +29,9 @@ export const isLoggedIn = asyncHandler(async (req, _, next) => {
     next();
   } catch (error) {
     console.log('error', error);
-    throw next(new apiError(error.message || 'error while authenticating user', 401));
+    throw next(
+      new apiError(error.message || 'error while authenticating user', 401)
+    );
   }
 });
 
@@ -45,7 +49,10 @@ export const authorizeRoles = ([...roles]) =>
 
 export const authorizeSubscribers = asyncHandler(async (req, _res, next) => {
   const user = await User.findById(req.user._id);
-  if ((user.role !== ('ADMIN' || 'TEACHER')) && (user.subscription.status !== 'active')) {
+  if (
+    user.role !== ('ADMIN' || 'TEACHER') &&
+    user.subscription.status !== 'active'
+  ) {
     throw next(new apiError('Please subscribe to access this route.', 403));
   }
   next();

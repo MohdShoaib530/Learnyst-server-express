@@ -22,7 +22,11 @@ export const getRazorpayApiKey = asyncHandler(async (_req, res, _next) => {
   res
     .status(200)
     .json(
-      new apiResponse(200, envVar.razorpayKeyId, 'Razorpay Key fetched successfully')
+      new apiResponse(
+        200,
+        envVar.razorpayKeyId,
+        'Razorpay Key fetched successfully'
+      )
     );
 });
 
@@ -42,7 +46,9 @@ export const buySubscription = asyncHandler(async (req, res, next) => {
     }
 
     if (user.role === ('ADMIN' || 'TEACHER')) {
-      return next(new apiError('Admin and Teachers cannot purchase a subscription', 400));
+      return next(
+        new apiError('Admin and Teachers cannot purchase a subscription', 400)
+      );
     }
 
     const subscription = await razorpay.subscriptions.create({
@@ -58,14 +64,14 @@ export const buySubscription = asyncHandler(async (req, res, next) => {
 
     res
       .status(200)
-      .json(
-        new apiResponse(200, subscription.id, 'subscribed successfully')
-      );
+      .json(new apiResponse(200, subscription.id, 'subscribed successfully'));
   } catch (error) {
     if (error.name === 'RazorpayError') {
       return next(new apiError(`Razorpay error: ${error.description}`, 500));
     } else {
-      return next(new apiError('An error occurred while processing the subscription', 500));
+      return next(
+        new apiError('An error occurred while processing the subscription', 500)
+      );
     }
   }
 });
@@ -78,7 +84,7 @@ export const buySubscription = asyncHandler(async (req, res, next) => {
 export const verifySubscription = asyncHandler(async (req, res, next) => {
   const { id } = req.user;
   const { razorpay_payment_id, razorpay_subscription_id, razorpay_signature } =
-        req.body;
+    req.body;
 
   const user = await User.findById(id);
 
@@ -104,9 +110,7 @@ export const verifySubscription = asyncHandler(async (req, res, next) => {
 
   res
     .status(200)
-    .json(
-      new apiResponse(200, {}, 'payment verified successfully')
-    );
+    .json(new apiResponse(200, {}, 'payment verified successfully'));
 });
 
 /**
@@ -121,7 +125,10 @@ export const cancelSubscription = asyncHandler(async (req, res, next) => {
 
   if (user.role === ('ADMIN' || 'TEACHER')) {
     return next(
-      new apiError('Admin and Teachers does not need to cannot cancel subscription', 400)
+      new apiError(
+        'Admin and Teachers does not need to cannot cancel subscription',
+        400
+      )
     );
   }
 
@@ -168,9 +175,7 @@ export const cancelSubscription = asyncHandler(async (req, res, next) => {
 
   res
     .status(200)
-    .json(
-      new apiResponse(200, user, 'Subscription cancelled successfully')
-    );
+    .json(new apiResponse(200, user, 'Subscription cancelled successfully'));
 });
 
 /**

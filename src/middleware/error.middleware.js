@@ -1,7 +1,6 @@
 import fs from 'fs';
 
 const errorMiddleware = (err, req, res, _next) => {
-
   if (req.file?.path) {
     fs.unlinkSync(req.file.path);
   }
@@ -13,7 +12,6 @@ const errorMiddleware = (err, req, res, _next) => {
     message: err.message,
     stack: err.stack
   });
-
 };
 
 export default errorMiddleware;
