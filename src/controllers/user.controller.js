@@ -86,7 +86,6 @@ export const registerUser = asyncHandler(async (req, res, next) => {
       );
   } catch (error) {
     console.log('error while creating user or sending email', error);
-    await User.findByIdAndDelete(user._id);
     return next(
       new apiError('error while sending email and user deleted', 401, error)
     );
@@ -98,8 +97,10 @@ export const registerUser = asyncHandler(async (req, res, next) => {
  * @POST {{URL}}/api/v1/user/confirm-status
  * @ACCESS mailed user
  */
+
 export const confirmUserStatus = asyncHandler(async (req, res, next) => {
   const { confirmToken } = req.params;
+  console.log('confirmToken', confirmToken);
   if (!confirmToken) {
     throw next(new apiError('confirmToken is required required', 400));
   }
@@ -135,10 +136,7 @@ export const confirmUserStatus = asyncHandler(async (req, res, next) => {
  */
 export const getUserStatusToken = asyncHandler(async (req, res, next) => {
   const { email } = req.body;
-
-  if (!email) {
-    throw next(new apiError('email is required', 400));
-  }
+  console.log('email', email);
   const user = await User.findOne({ email });
 
   if (!user) {
@@ -165,7 +163,13 @@ export const getUserStatusToken = asyncHandler(async (req, res, next) => {
 
     res
       .status(200)
-      .json(new apiResponse(200, user, 'userStatusToken sent successfully'));
+      .json(
+        new apiResponse(
+          200,
+          user,
+          'userStatusToken sent successfully on your email'
+        )
+      );
   } catch (error) {
     console.log('error while sending email', error);
     return next(new apiError('error while sending email ', 401, error));
@@ -207,8 +211,13 @@ export const loginUser = asyncHandler(async (req, res, next) => {
   if (!user) {
     throw next(new apiError('OOPS! User does not exists', 404));
   }
+  const userStatus = user.status;
+  if (!userStatus) {
+    throw next(new apiError('userEmail is not verified', 401));
+  }
 
   const isPasswordValid = await user.comparePassword(password);
+  console.log('isPasswordValid', isPasswordValid);
   if (!isPasswordValid) {
     throw next(new apiError('Password does not match', 401));
   }
@@ -259,7 +268,7 @@ export const logoutUser = asyncHandler(async (req, res, next) => {
 export const refreshAccessToken = asyncHandler(async (req, res, next) => {
   try {
     const incomingRefreshToken =
-      req.cookie?.refreshToken || req.body?.refreshToken;
+      req.cookies?.refreshToken || req.body?.refreshToken;
 
     if (!incomingRefreshToken) {
       throw next(new apiError('unable to get the refreshToken', 401));
@@ -285,7 +294,7 @@ export const refreshAccessToken = asyncHandler(async (req, res, next) => {
       .status(200)
       .cookie('accessToken', accessToken, cookieOptions)
       .cookie('refreshToken', refreshToken, cookieOptions)
-      .json(new apiResponse(200, user, 'refreshToken refreshed'));
+      .json(new apiResponse(200, user, 'refreshToken tokens'));
   } catch (error) {
     console.log('error', error);
   }
@@ -355,6 +364,7 @@ export const forgotPassword = asyncHandler(async (req, res, next) => {
 export const resetPassword = asyncHandler(async (req, res, next) => {
   const { resetToken } = req.params;
   const { password } = req.body;
+  console.log('resetToken', resetToken, password);
 
   if (!password) {
     throw next(new apiError('Password is required'));
@@ -437,6 +447,7 @@ export const changePassword = asyncHandler(async (req, res, next) => {
  */
 export const updateName = asyncHandler(async (req, res, next) => {
   const { fullName } = req.body;
+  console.log('fullName', fullName);
   if (!fullName) {
     throw next(new apiError('fullName is required to update username', 400));
   }
@@ -456,7 +467,8 @@ export const updateName = asyncHandler(async (req, res, next) => {
  * @ACCESS loggedIn users only
  */
 export const updateEmail = asyncHandler(async (req, res, next) => {
-  const email = req.body;
+  const { email } = req.body;
+  console.log('email', email);
   if (!email) {
     throw next(new apiError('Email is required to update', 400));
   }
@@ -468,7 +480,7 @@ export const updateEmail = asyncHandler(async (req, res, next) => {
   await user.save();
 
   const changeEmialUrl = `${envVar.frontendUrl}/change-email/${resetToken}`;
-  const subject = 'Change Emial';
+  const subject = 'Change email';
 
   const message = `You can change your email by clicking <a href=${changeEmialUrl} target="_blank">Reset your password</a>\nIf the above link does not work for some reason then copy paste this link in new tab ${changeEmialUrl}.\n If you have not requested this, kindly ignore.`;
 
@@ -499,7 +511,7 @@ export const updateEmail = asyncHandler(async (req, res, next) => {
 export const changeEmail = asyncHandler(async (req, res, next) => {
   const { resetToken } = req.params;
   const { email } = req.body;
-  console.log(resetToken, email);
+  console.log('userdata', resetToken, email);
   if (!(resetToken && email)) {
     new apiError('Token and email is required', 400);
   }
@@ -541,17 +553,17 @@ export const updateAvatar = asyncHandler(async (req, res, next) => {
     throw next(new apiError('avatar is required', 400));
   }
   const user = await User.findById(req.user?._id);
+  console.log(user);
   try {
     let avatarLocalPath;
     if (req.file?.path) {
-      avatarLocalPath = req.file?.path;
+      avatarLocalPath = req.file;
     }
-    console.log('avatarlocal', avatarLocalPath);
+    console.log('avatarlocal', typeof avatarLocalPath);
     const destroyOldAvatar = await cloudinary.v2.uploader.destroy(
       user.avatar?.public_id
     );
     const avatarUploadCloudinary = await cloudinaryUpload(avatarLocalPath);
-
     if (avatarUploadCloudinary) {
       user.avatar.public_id = avatarUploadCloudinary?.public_id;
       user.avatar.secure_url = avatarUploadCloudinary?.secure_url;
@@ -576,15 +588,15 @@ export const updateAvatar = asyncHandler(async (req, res, next) => {
  */
 export const updateCoverImage = asyncHandler(async (req, res, next) => {
   const coverImage = req.file;
-  console.log(coverImage);
+  console.log('coverImage', req.file);
   if (!coverImage) {
-    throw next(new apiError('avatar is required', 400));
+    throw next(new apiError('coverImage is required', 400));
   }
   const user = await User.findById(req.user?._id);
   try {
     let coverImageLocalPath;
     if (req.file?.path) {
-      coverImageLocalPath = req.file?.path;
+      coverImageLocalPath = req.file;
     }
     console.log('avatarlocal', coverImageLocalPath);
     const destroyOldCoverImage = await cloudinary.v2.uploader.destroy(

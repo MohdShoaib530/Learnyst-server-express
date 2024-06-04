@@ -54,7 +54,7 @@ export const buySubscription = asyncHandler(async (req, res, next) => {
     const subscription = await razorpay.subscriptions.create({
       plan_id: envVar.razorpayPlanId,
       customer_notify: 1,
-      total_count: 12
+      total_count: 1
     });
 
     user.subscription.id = subscription.id;

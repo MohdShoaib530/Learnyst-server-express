@@ -6,22 +6,54 @@ import apiResponse from '../utils/apiResponse.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import cloudinaryUpload from '../utils/cloudinaryUpload.js';
 
+const buildPipeline = ({ query, sortBy, sortType, page, limit }) => {
+  const pipeline = [];
+
+  // Match stage based on query (if provided)
+  if (query) {
+    pipeline.push({ $match: { title: { $regex: query, $options: 'i' } } });
+  }
+
+  // Sort stage based on sortBy and sortType (if provided)
+  if (sortBy && sortType) {
+    const sortOption = {};
+    sortOption[sortBy] = sortType === 'desc' ? -1 : 1;
+    pipeline.push({ $sort: sortOption });
+  }
+
+  // Pagination stage using $skip and $limit
+  const skip = (page - 1) * limit;
+  pipeline.push({ $skip: skip });
+  pipeline.push({ $limit: parseInt(limit, 10) });
+  console.log('pipeline', pipeline);
+  return pipeline;
+};
 /**
  * @ALL_COURSES
  * @ROUTE @GET {{URL}}/api/v1/courses
  * @ACCESS Public
  */
 export const getAllCourses = asyncHandler(async (_req, res, next) => {
+  const page = 1;
+  const limit = 9;
+  //TODO: get all videos based on query, sort, pagination
+
+  // Pagination using mongoose-aggregate-paginate-v2
+  const options = {
+    page: parseInt(page, 10),
+    limit: parseInt(limit, 10)
+  };
+  const pipeline = buildPipeline({ page, limit });
+  const { docs } = await Course.aggregatePaginate(pipeline, options);
   // Find all the courses without lectures
-  const courses = await Course.find({}).select('-lectures');
-  console.log('courses', courses);
-  if (!courses) {
+  console.log('courses', docs);
+  if (!docs) {
     throw next(new apiError('courses not found'));
   }
 
   res
     .status(200)
-    .json(new apiResponse(200, courses, 'All courses fetched successfully'));
+    .json(new apiResponse(200, docs, 'All courses fetched successfully'));
 });
 
 /**
@@ -31,6 +63,7 @@ export const getAllCourses = asyncHandler(async (_req, res, next) => {
  */
 export const createCourse = asyncHandler(async (req, res, next) => {
   const { title, description, category } = req.body;
+  console.log('req.body', req.body);
 
   if (!title || !description || !category) {
     return next(new apiError('All fields are required', 400));
@@ -91,7 +124,7 @@ export const createCourse = asyncHandler(async (req, res, next) => {
  */
 export const removeLectureFromCourse = asyncHandler(async (req, res, next) => {
   // Grabbing the courseId and lectureId from req.query
-  const { courseId, lectureId } = req.query;
+  const { courseId, lectureId } = req.body;
 
   console.log('courseId', courseId, lectureId);
 
@@ -162,7 +195,13 @@ export const getLecturesByCourseId = asyncHandler(async (req, res, next) => {
 
   res
     .status(200)
-    .json(new apiResponse(200, course, 'course lectures fetched successfully'));
+    .json(
+      new apiResponse(
+        200,
+        { course: course },
+        'course lectures fetched successfully'
+      )
+    );
 });
 
 /**
@@ -194,6 +233,7 @@ export const addLectureToCourseById = asyncHandler(async (req, res, next) => {
     }
     console.log('lectureLocalPath', lectureLocalPath);
     const lectureUploadCloudinary = await cloudinaryUpload(lectureLocalPath);
+    console.log('lectureupload', lectureUploadCloudinary);
 
     if (lectureUploadCloudinary) {
       lectureData.public_id = lectureUploadCloudinary.public_id;

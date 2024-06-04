@@ -38,7 +38,7 @@ const userSchema = new mongoose.Schema(
       status: String
     },
     status: {
-      type: String,
+      type: Boolean,
       default: false
     },
     avatar: {

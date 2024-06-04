@@ -24,7 +24,7 @@ const router = Router();
 
 router.route('/register').post(registerUser);
 router.route('/confirm-status/:confirmToken').post(confirmUserStatus);
-router.route('/getStatus-token').get(getUserStatusToken);
+router.route('/getStatus-token').post(getUserStatusToken);
 router.route('/delete-user').delete(isLoggedIn, deleteUser);
 router.route('/refreshAccessToken').post(refreshAccessToken);
 router.route('/login').post(loginUser);
